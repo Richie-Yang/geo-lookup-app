@@ -146,8 +146,9 @@
 
   <script>
       getLocation();
+      const APP_URL = "https://geo-lookup-app-361306888123.asia-east1.run.app"
       function getLocation() {
-        fetch('http://localhost:8080/lookup', {
+        fetch(APP_URL + '/lookup', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
