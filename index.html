@@ -98,6 +98,15 @@
         <h1>📍 Geolocation Test</h1>
         <button id="getLocationBtn" onclick="getLocation()">Get My Location</button>
         
+        <div style="margin: 30px 0; padding-top: 30px; border-top: 1px solid #ddd;">
+            <h2 style="font-size: 20px; margin-bottom: 20px; color: #333;">Or Enter Coordinates</h2>
+            <div style="display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap;">
+                <input type="number" id="latInput" placeholder="Latitude" step="any" style="flex: 1; min-width: 120px; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+                <input type="number" id="lngInput" placeholder="Longitude" step="any" style="flex: 1; min-width: 120px; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+            </div>
+            <button id="lookupBtn" onclick="lookupCoordinates()" style="width: 100%;">Lookup Country</button>
+        </div>
+        
         <div id="loading" class="loading" style="display: none;">
             Getting your location...
         </div>
@@ -134,6 +143,14 @@
             <div class="info-item">
                 <span class="info-label">Timestamp:</span>
                 <span id="timestamp">-</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Country:</span>
+                <span id="country">-</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Address:</span>
+                <span id="address">-</span>
             </div>
         </div>
         
@@ -198,9 +215,12 @@
             );
         }
         
-        function displayLocation(position) {
-            document.getElementById('latitude').textContent = position.coords.latitude.toFixed(6);
-            document.getElementById('longitude').textContent = position.coords.longitude.toFixed(6);
+        async function displayLocation(position) {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            
+            document.getElementById('latitude').textContent = lat.toFixed(6);
+            document.getElementById('longitude').textContent = lng.toFixed(6);
             document.getElementById('accuracy').textContent = Math.round(position.coords.accuracy);
             document.getElementById('altitude').textContent = position.coords.altitude ? position.coords.altitude.toFixed(2) + ' m' : 'Not available';
             document.getElementById('altitudeAccuracy').textContent = position.coords.altitudeAccuracy ? Math.round(position.coords.altitudeAccuracy) : 'Not available';
@@ -208,7 +228,110 @@
             document.getElementById('speed').textContent = position.coords.speed ? position.coords.speed.toFixed(2) : 'Not available';
             document.getElementById('timestamp').textContent = new Date(position.timestamp).toLocaleString();
             
+            // Fetch country name and address
+            document.getElementById('country').textContent = 'Loading...';
+            document.getElementById('address').textContent = 'Loading...';
+            
+            try {
+                const locationData = await getCountryFromCoordinates(lat, lng);
+                document.getElementById('country').textContent = locationData.country || 'Not available';
+                document.getElementById('address').textContent = locationData.address || 'Not available';
+            } catch (error) {
+                document.getElementById('country').textContent = 'Error loading';
+                document.getElementById('address').textContent = 'Error loading';
+                console.error('Error fetching location data:', error);
+            }
+            
             document.getElementById('info').style.display = 'block';
+        }
+        
+        async function getCountryFromCoordinates(latitude, longitude) {
+            // Using OpenStreetMap Nominatim API for reverse geocoding (free, no API key required)
+            const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`;
+            
+            try {
+                const response = await fetch(url, {
+                    headers: {
+                        'User-Agent': 'GeoLookupApp/1.0' // Required by Nominatim
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // Extract country name and formatted address
+                const country = data.address?.country || data.address?.country_code?.toUpperCase() || 'Unknown';
+                const address = data.display_name || 'Address not available';
+                
+                return {
+                    country: country,
+                    address: address
+                };
+            } catch (error) {
+                console.error('Reverse geocoding error:', error);
+                throw error;
+            }
+        }
+        
+        async function lookupCoordinates() {
+            const latInput = document.getElementById('latInput');
+            const lngInput = document.getElementById('lngInput');
+            const btn = document.getElementById('lookupBtn');
+            const loading = document.getElementById('loading');
+            const info = document.getElementById('info');
+            const error = document.getElementById('error');
+            
+            const lat = parseFloat(latInput.value);
+            const lng = parseFloat(lngInput.value);
+            
+            // Validate inputs
+            if (isNaN(lat) || isNaN(lng)) {
+                showError('Please enter valid latitude and longitude values.');
+                return;
+            }
+            
+            if (lat < -90 || lat > 90) {
+                showError('Latitude must be between -90 and 90.');
+                return;
+            }
+            
+            if (lng < -180 || lng > 180) {
+                showError('Longitude must be between -180 and 180.');
+                return;
+            }
+            
+            // Reset UI
+            btn.disabled = true;
+            loading.style.display = 'block';
+            info.style.display = 'none';
+            error.style.display = 'none';
+            
+            try {
+                // Create a mock position object for display
+                const mockPosition = {
+                    coords: {
+                        latitude: lat,
+                        longitude: lng,
+                        accuracy: null,
+                        altitude: null,
+                        altitudeAccuracy: null,
+                        heading: null,
+                        speed: null
+                    },
+                    timestamp: Date.now()
+                };
+                
+                await displayLocation(mockPosition);
+                btn.disabled = false;
+                loading.style.display = 'none';
+            } catch (err) {
+                showError('Failed to lookup location. Please try again.');
+                btn.disabled = false;
+                loading.style.display = 'none';
+            }
         }
         
         function showError(message) {
