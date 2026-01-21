@@ -21,9 +21,6 @@ WORKDIR /app
 # Copy binary from builder
 COPY --from=builder /app/main .
 
-# Copy static files if needed
-COPY --from=builder /app/web ./web
-
 # Cloud Run uses PORT env variable
 ENV PORT=8080
 ENV GIN_MODE=release
