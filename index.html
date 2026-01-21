@@ -98,15 +98,6 @@
         <h1>📍 Geolocation Test</h1>
         <button id="getLocationBtn" onclick="getLocation()">Get My Location</button>
         
-        <div style="margin: 30px 0; padding-top: 30px; border-top: 1px solid #ddd;">
-            <h2 style="font-size: 20px; margin-bottom: 20px; color: #333;">Or Enter Coordinates</h2>
-            <div style="display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap;">
-                <input type="number" id="latInput" placeholder="Latitude" step="any" style="flex: 1; min-width: 120px; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
-                <input type="number" id="lngInput" placeholder="Longitude" step="any" style="flex: 1; min-width: 120px; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
-            </div>
-            <button id="lookupBtn" onclick="lookupCoordinates()" style="width: 100%;">Lookup Country</button>
-        </div>
-        
         <div id="loading" class="loading" style="display: none;">
             Getting your location...
         </div>
@@ -158,11 +149,12 @@
     </div>
 
     <script>
+        
         function getLocation() {
             const btn = document.getElementById('getLocationBtn');
-            const loading = document.getElementById('loading');
             const info = document.getElementById('info');
             const error = document.getElementById('error');
+            const loading = document.getElementById('loading');
             
             // Reset UI
             btn.disabled = true;
@@ -184,7 +176,6 @@
                     // Success callback
                     displayLocation(position);
                     btn.disabled = false;
-                    loading.style.display = 'none';
                 },
                 function(err) {
                     // Error callback
@@ -243,6 +234,7 @@
             }
             
             document.getElementById('info').style.display = 'block';
+            document.getElementById('loading').style.display = 'none';
         }
         
         async function getCountryFromCoordinates(latitude, longitude) {
