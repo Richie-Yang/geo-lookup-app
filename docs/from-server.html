@@ -145,32 +145,33 @@
   </div>
 
   <script>
-      getLocation();
-      const APP_URL = "https://geo-lookup-app-361306888123.asia-east1.run.app"
-      function getLocation() {
+    const APP_URL = "https://geo-lookup-app-361306888123.asia-east1.run.app"
+    getLocation();
+
+    function getLocation() {
         fetch(APP_URL + '/lookup', {
-          method: 'POST',
-          headers: {
+        method: 'POST',
+        headers: {
             'Content-Type': 'application/json'
-          }
+        }
         })
         .then(response => response.json())
         .then(data => {
-          console.log(data);
-          document.getElementById('info').style.display = 'block';
-          document.getElementById('country').textContent = data.country;
+        console.log(data);
+        document.getElementById('info').style.display = 'block';
+        document.getElementById('country').textContent = data.country;
         })
         .catch(error => {
-          console.error('Error fetching location data:', error);
-          showError('Error fetching location data: ' + error.message);
+        console.error('Error fetching location data:', error);
+        showError('Error fetching location data: ' + error.message);
         });
-      }
+    }
 
-      function showError(message) {
-          const error = document.getElementById('error');
-          error.textContent = message;
-          error.style.display = 'block';
-      }
+    function showError(message) {
+        const error = document.getElementById('error');
+        error.textContent = message;
+        error.style.display = 'block';
+    }
   </script>
 </body>
 </html>
